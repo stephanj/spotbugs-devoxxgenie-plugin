@@ -54,6 +54,9 @@ repositories {
 intellijPlatform {
     pluginConfiguration {
         name = 'spotbugs-idea'
+        ideaVersion {
+            untilBuild = provider { null }
+        }
     }
 }
 
