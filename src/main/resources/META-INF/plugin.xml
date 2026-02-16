@@ -20,7 +20,7 @@
   -->
 
 <idea-plugin url="https://github.com/JetBrains/spotbugs-intellij-plugin">
-    <name>SpotBugs</name>
+    <name>SpotBugs with DevoxxGenie</name>
     <description>
         <![CDATA[
 		IntelliJ SpotBugs plugin provides static byte code analysis to look for bugs in Java code from within IntelliJ IDEA.
@@ -169,7 +169,7 @@
         </ul>
 		<html>]]>
     </change-notes>
-    <id>org.jetbrains.plugins.spotbugs</id>
+    <id>org.jetbrains.plugins.spotbugs.devoxxgenie</id>
     <version>@VERSION@</version>
     <vendor email="tagir.valeev@jetbrains.com" url="https://github.com/amaembo">Tagir Valeev
     </vendor>
@@ -190,13 +190,13 @@
                     factoryClass="org.jetbrains.plugins.spotbugs.core.ToolWindowFactoryImpl"/>
 
         <projectConfigurable groupId="tools" provider="org.jetbrains.plugins.spotbugs.core.ProjectConfigurableProvider"
-                             displayName="SpotBugs"/>
+                             displayName="SpotBugs with DevoxxGenie"/>
         <search.optionContributor implementation="org.jetbrains.plugins.spotbugs.gui.settings.SearchableOptionContributorImpl"/>
 
         <moduleService serviceImplementation="org.jetbrains.plugins.spotbugs.core.ModuleSettings"/>
         <moduleService serviceImplementation="org.jetbrains.plugins.spotbugs.gui.preferences.LegacyModuleSettings"/>
         <moduleConfigurable provider="org.jetbrains.plugins.spotbugs.core.ModuleConfigurableProvider"
-                            displayName="SpotBugs"/>
+                            displayName="SpotBugs with DevoxxGenie"/>
         <checkinHandlerFactory implementation="org.jetbrains.plugins.spotbugs.core.CheckinHandlerFactoryImpl"/>
         <projectService serviceImplementation="org.jetbrains.plugins.spotbugs.core.ProblemCacheService"/>
     </extensions>
@@ -239,7 +239,7 @@
     </extensions>
 
     <actions>
-        <group id="SpotBugs.AnalyzeMenu" text="SpotBugs" popup="true">
+        <group id="SpotBugs.AnalyzeMenu" text="SpotBugs with DevoxxGenie" popup="true">
             <add-to-group anchor="last" group-id="AnalyzeMenu"/>
             <add-to-group anchor="after" group-id="EditorPopupMenu" relative-to-action="AnalyzeMenu"/>
             <add-to-group anchor="after" group-id="ProjectViewPopupMenu" relative-to-action="AnalyzeMenu"/>

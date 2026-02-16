@@ -53,7 +53,7 @@ repositories {
 
 intellijPlatform {
     pluginConfiguration {
-        name = 'spotbugs-idea'
+        name = 'SpotBugs with DevoxxGenie'
         ideaVersion {
             untilBuild = provider { null }
         }
