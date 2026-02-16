@@ -7,6 +7,27 @@
 IntelliJ SpotBugs plugin provides static byte code analysis to look for bugs in Java code from within IntelliJ IDEA.
 The plugin uses [SpotBugs](https://spotbugs.github.io/) under the hood.
 
+## DevoxxGenie Integration
+
+This fork adds integration with the [DevoxxGenie](https://github.com/devoxx/DevoxxGenieIDEAPlugin) IntelliJ plugin, allowing you to send SpotBugs findings directly to an AI assistant for fix suggestions.
+
+### Features
+
+- **Intention action** — When SpotBugs highlights a bug in the editor, use the "DevoxxGenie: Fix '...'" quick-fix from the Alt+Enter menu to send the finding to DevoxxGenie.
+- **Line marker integration** — Right-click a SpotBugs gutter icon to access the DevoxxGenie fix action alongside the existing suppress/clear options.
+- **Bug details panel button** — A "Fix with DevoxxGenie" button appears in the SpotBugs tool window when viewing bug details.
+
+### How It Works
+
+The plugin detects whether DevoxxGenie is installed at runtime. When available, it constructs a detailed prompt containing the bug pattern, category, rank, source location, and relevant annotations, then sends it to DevoxxGenie's `ExternalPromptService` API. No additional configuration is required — just install both plugins and use them together.
+
+### Requirements
+
+- [DevoxxGenie](https://plugins.jetbrains.com/plugin/24169-devoxxgenie) plugin installed and enabled in IntelliJ IDEA
+- SpotBugs analysis results available (run an analysis first)
+
+---
+
 The plugin is created by [Andrey Cherkasov](mailto:jqy@protonmail.com) and sponsored by JetBrains s.r.o.
 
 The plugin is based on [FindBugs-IDEA](https://github.com/andrepdo/findbugs-idea), which is created by [Andre Pfeiler](mailto:andrepdo@dev.java.net) and licensed under the [GNU LESSER GENERAL PUBLIC LICENSE](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html).
