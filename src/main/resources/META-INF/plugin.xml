@@ -23,60 +23,58 @@
     <name>SpotBugs with DevoxxGenie</name>
     <description>
         <![CDATA[
-		IntelliJ SpotBugs plugin provides static byte code analysis to look for bugs in Java code from within IntelliJ IDEA.
-		SpotBugs is a defect detection tool for Java that uses static analysis to look for more than 400 bug patterns,
-		such as null pointer dereferences, infinite recursive loops, bad uses of the Java libraries and deadlocks.
-		SpotBugs can identify hundreds of serious defects in large applications (typically about 1 defect per 1000-2000
-		lines of non-commenting source statements).
 		<p>
-		The plugin uses SpotBugs under the hood. For more information
-		see <a href="https://github.com/spotbugs/spotbugs">https://github.com/spotbugs/spotbugs</a>.
+		Static byte code analysis for Java powered by <a href="https://github.com/spotbugs/spotbugs">SpotBugs</a>,
+		with AI-powered fix suggestions via <a href="https://plugins.jetbrains.com/plugin/24169-devoxxgenie">DevoxxGenie</a>.
 		</p>
 		<p>
-		..."We use IDEA inspections and SpotBugs complementary. SpotBugs is running in our continuous integration process and IDEA inspections are used during coding."
-		What about using both during coding from within IntelliJ IDEA?
+		SpotBugs uses static analysis to detect more than 400 bug patterns in Java code, including null pointer dereferences,
+		infinite recursive loops, bad uses of the Java libraries, and deadlocks. It can identify hundreds of serious defects
+		in large applications (typically about 1 defect per 1000-2000 lines of non-commenting source statements).
 		</p>
+
+		<h3>DevoxxGenie Integration</h3>
 		<p>
-		IntelliJ SpotBugs plugin features:
+		When the <a href="https://plugins.jetbrains.com/plugin/24169-devoxxgenie">DevoxxGenie</a> plugin is installed,
+		you get AI-powered fix suggestions for every bug SpotBugs finds:
+		</p>
+		<ul>
+			<li><b>Intention action (Alt+Enter)</b> &mdash; select "DevoxxGenie: Fix [BugPattern]" from the quick-fix menu on any highlighted bug</li>
+			<li><b>Gutter icon menu</b> &mdash; right-click the SpotBugs line marker to request an AI fix</li>
+			<li><b>Tool window button</b> &mdash; click "Fix with DevoxxGenie" in the bug details panel</li>
+		</ul>
+		<p>
+		Each action sends the bug details, source context, and surrounding code to DevoxxGenie, which uses an LLM
+		to suggest a fix. DevoxxGenie is detected automatically at runtime &mdash; no extra configuration needed.
+		</p>
+
+		<h3>SpotBugs Features</h3>
 		<ul>
             <li>SpotBugs 4 support</li>
-            <li>quickfix: annotate, suppress SpotBugs patterns (GutterIcon and document markup (alt+enter))</li>
+            <li>Quick-fix: annotate, suppress SpotBugs patterns (gutter icon and Alt+Enter)</li>
             <li>IntelliJ IDEA 2023.3+ compatibility</li>
-            <li>configure SpotBugs on idea project and module level</li>
-            <li>jump to source from results shown in toolwindow including anonymous classes</li>
-            <li>bug descriptions, solutions</li>
-            <li>run analysis always in background</li>
-            <li>run findbugs analysis on all affected files after compile/automake</li>
-            <li>min. priority to report</li>
-            <li>background scanning</li>
-            <li>configurable effort run level</li>
-            <li>configurable detectors</li>
-            <li>bug categories to report</li>
-            <li>file filter (include, exclude, exclude baseline bugs)</li>
-            <li>load additional detector plugins like fb-contrib.jar</li>
-            <li>group results by: bug category, classname, package, priority, bug rank</li>
-            <li>intellij local history support</li>
-            <li>quick search within the result tree</li>
-            <li>basic Scala, Groovy and AspectJ support</li>
-            <li>Analyze actions (all actions are also available in the intellij project tree, toolbar menu, context menu):
+            <li>Configure SpotBugs on project and module level</li>
+            <li>Jump to source from results shown in tool window (including anonymous classes)</li>
+            <li>Bug descriptions and solutions</li>
+            <li>Background scanning with configurable effort level</li>
+            <li>Run analysis on all affected files after compile/automake</li>
+            <li>Configurable detectors, bug categories, and minimum priority</li>
+            <li>File filters (include, exclude, exclude baseline bugs)</li>
+            <li>Additional detector plugins (fb-contrib, find-security-bugs, custom plugins)</li>
+            <li>Group results by: bug category, class, package, priority, or bug rank</li>
+            <li>Quick search within the result tree</li>
+            <li>Basic Scala, Groovy, and AspectJ support</li>
+            <li>Analyze actions (also available from project tree, toolbar, and context menu):
                 <ul>
-                    <li>analyze all modified files</li>
-                    <li>analyze all files on the active changelist (available from IntelliJ SpotBugs main ToolWindow and the ChangelistToolWindow)</li>
-                    <li>analyze class under cursor</li>
-                    <li>analyze current editor file</li>
-                    <li>analyze all files of an intellij project</li>
-                    <li>analyze all files of an intellij module</li>
-                    <li>analyze all files of the selected package</li>
-                    <li>analyze a bunch of selected files (project tree)</li>
-                    <li>analyze a scope</li>
+                    <li>all modified files or active changelist</li>
+                    <li>class under cursor or current editor file</li>
+                    <li>entire project, module, package, or selected files</li>
+                    <li>a scope</li>
                 </ul>
             </li>
-            <li>export a bug collection to html and/or xml with limited configurable dir based archive support</li>
-            <li>import a bug collection from xml</li>
-            <li>configurable : open an exported bug collection html page in the intellij configured browser</li>
-            <li>configurable : preview found bugs in an editor preview panel</li>
+            <li>Export bug collection to HTML/XML; import from XML</li>
+            <li>Preview found bugs in an editor preview panel</li>
 		</ul>
-		</p>
 		]]>
     </description>
     <change-notes>
