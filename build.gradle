@@ -32,7 +32,7 @@ buildscript {
 }
 
 plugins {
-    id "org.jetbrains.intellij.platform" version "2.2.1"
+    id "org.jetbrains.intellij.platform" version "2.11.0"
     id 'jacoco'
 }
 
@@ -134,11 +134,13 @@ tasks.jacocoTestReport.dependsOn(deleteThirdPartyPlugins)
 tasks.jacocoTestCoverageVerification.dependsOn(deleteThirdPartyPlugins)
 
 test {
-    def ideaHomePath = System.getenv().get('IDEA_HOME_PATH') ?: project.findProperty('idea.home.path')
-    if (ideaHomePath == null) {
-        throw new RuntimeException("Please set the 'idea.home.path' property at gradle.properties")
+    doFirst {
+        def ideaHomePath = System.getenv().get('IDEA_HOME_PATH') ?: project.findProperty('idea.home.path')
+        if (ideaHomePath == null) {
+            throw new RuntimeException("Please set the 'idea.home.path' property at gradle.properties")
+        }
+        systemProperty "idea.home.path", ideaHomePath
     }
-    systemProperty "idea.home.path", ideaHomePath
     finalizedBy jacocoTestReport
 }
 
@@ -152,7 +154,7 @@ jacocoTestReport {
 }
 
 wrapper {
-    gradleVersion = '8.12'
+    gradleVersion = '9.3.1'
 }
 
 kotlin {
