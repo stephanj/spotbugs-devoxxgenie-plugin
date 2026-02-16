@@ -23,9 +23,12 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.CompilerProjectExtension;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.OrderEnumerator;
+import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiJavaFile;
@@ -143,6 +146,38 @@ public final class FindBugsProjects {
 			for (final VirtualFile compilerOutputPath : compilerOutputPaths) {
 				if (!ret.addAuxClasspathEntry(compilerOutputPath.getCanonicalPath())) {
 					LOGGER.debug(String.format("Aux classpath '%s' of module '%s' already added", compilerOutputPath, module.getName()));
+				}
+			}
+
+			// Add JDK classes (required by SpotBugs to resolve core types like java.lang.Object)
+			final Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
+			if (sdk != null && sdk.getHomePath() != null) {
+				// Java 9+: SpotBugs handles JDK home via JrtfsCodeBase
+				ret.addAuxClasspathEntry(sdk.getHomePath());
+				// Java 8: also add individual SDK class roots (e.g. rt.jar)
+				for (final VirtualFile root : sdk.getRootProvider().getFiles(OrderRootType.CLASSES)) {
+					String path = root.getPath();
+					if (path.endsWith("!/")) {
+						path = path.substring(0, path.length() - 2);
+					}
+					if (new File(path).isFile()) {
+						ret.addAuxClasspathEntry(path);
+					}
+				}
+			}
+
+			// Add library dependencies
+			for (final VirtualFile root : OrderEnumerator.orderEntries(module)
+					.recursively()
+					.librariesOnly()
+					.classes()
+					.getRoots()) {
+				String path = root.getPath();
+				if (path.endsWith("!/")) {
+					path = path.substring(0, path.length() - 2);
+				}
+				if (new File(path).exists()) {
+					ret.addAuxClasspathEntry(path);
 				}
 			}
 
