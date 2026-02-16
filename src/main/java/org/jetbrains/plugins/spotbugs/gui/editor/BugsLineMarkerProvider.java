@@ -44,6 +44,7 @@ import org.jetbrains.plugins.spotbugs.core.WorkspaceSettings;
 import org.jetbrains.plugins.spotbugs.gui.intentions.GroupBugIntentionListPopupStep;
 import org.jetbrains.plugins.spotbugs.gui.intentions.RootGroupBugIntentionListPopupStep;
 import org.jetbrains.plugins.spotbugs.gui.toolwindow.view.ToolWindowPanel;
+import org.jetbrains.plugins.spotbugs.devoxxgenie.FixWithDevoxxGenieIntentionAction;
 import org.jetbrains.plugins.spotbugs.intentions.ClearAndSuppressBugIntentionAction;
 import org.jetbrains.plugins.spotbugs.intentions.ClearBugIntentionAction;
 import org.jetbrains.plugins.spotbugs.intentions.SuppressReportBugForClassIntentionAction;
@@ -96,7 +97,7 @@ public final class BugsLineMarkerProvider implements LineMarkerProvider {
 			for (final ExtendedProblemDescriptor problemDescriptor : descriptors) {
 
 				final PsiElement problemPsiElement = problemDescriptor.getPsiElement();
-				if (psiElement == firstLeafOrNull(problemPsiElement)) {
+				if (problemPsiElement != null && psiElement == firstLeafOrNull(problemPsiElement)) {
 					matchingDescriptors.add(problemDescriptor);
 					//if(psiElement instanceof PsiAnonymousClass) {
 					//	final Editor[] editors = com.intellij.openapi.editor.EditorFactory.getInstance().getEditors(IdeaUtilImpl.getDocument(psiFile.getProject(), problemDescriptor));
@@ -146,6 +147,7 @@ public final class BugsLineMarkerProvider implements LineMarkerProvider {
 				intentionActions.add(new SuppressReportBugForClassIntentionAction(problemDescriptor));
 				intentionActions.add(new ClearBugIntentionAction(problemDescriptor));
 				intentionActions.add(new ClearAndSuppressBugIntentionAction(problemDescriptor));
+				intentionActions.add(new FixWithDevoxxGenieIntentionAction(problemDescriptor));
 
 				final GroupBugIntentionListPopupStep intentionActionGroup = new GroupBugIntentionListPopupStep(_psiElement, intentionActions);
 				intentionGroups.add(intentionActionGroup);

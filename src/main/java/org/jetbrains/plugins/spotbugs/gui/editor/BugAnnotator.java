@@ -38,6 +38,7 @@ import org.jetbrains.plugins.spotbugs.common.util.StringUtilFb;
 import org.jetbrains.plugins.spotbugs.core.FindBugsState;
 import org.jetbrains.plugins.spotbugs.core.ProblemCacheService;
 import org.jetbrains.plugins.spotbugs.core.WorkspaceSettings;
+import org.jetbrains.plugins.spotbugs.devoxxgenie.FixWithDevoxxGenieIntentionAction;
 import org.jetbrains.plugins.spotbugs.intentions.ClearAndSuppressBugIntentionAction;
 import org.jetbrains.plugins.spotbugs.intentions.ClearBugIntentionAction;
 import org.jetbrains.plugins.spotbugs.intentions.SuppressReportBugForClassIntentionAction;
@@ -122,6 +123,7 @@ public final class BugAnnotator implements Annotator {
 								.newFix(new SuppressReportBugForClassIntentionAction(problemDescriptor)).range(textRange).registerFix()
 								.newFix(new ClearBugIntentionAction(problemDescriptor)).range(textRange).registerFix()
 								.newFix(new ClearAndSuppressBugIntentionAction(problemDescriptor)).range(textRange).registerFix()
+								.newFix(new FixWithDevoxxGenieIntentionAction(problemDescriptor)).range(textRange).registerFix()
 								.create();
 
 				break;
@@ -151,6 +153,7 @@ public final class BugAnnotator implements Annotator {
 								.newFix(new SuppressReportBugForClassIntentionAction(problemDescriptor)).range(textRange).registerFix()
 								.newFix(new ClearBugIntentionAction(problemDescriptor)).range(textRange).registerFix()
 								.newFix(new ClearAndSuppressBugIntentionAction(problemDescriptor)).range(textRange).registerFix()
+								.newFix(new FixWithDevoxxGenieIntentionAction(problemDescriptor)).range(textRange).registerFix()
 								.create();
 
 				break;
@@ -177,6 +180,7 @@ public final class BugAnnotator implements Annotator {
 								.newFix(new SuppressReportBugForClassIntentionAction(problemDescriptor)).range(textRange).registerFix()
 								.newFix(new ClearBugIntentionAction(problemDescriptor)).range(textRange).registerFix()
 								.newFix(new ClearAndSuppressBugIntentionAction(problemDescriptor)).range(textRange).registerFix()
+								.newFix(new FixWithDevoxxGenieIntentionAction(problemDescriptor)).range(textRange).registerFix()
 								.create();
 
 				break;
@@ -202,6 +206,7 @@ public final class BugAnnotator implements Annotator {
 								.newFix(new SuppressReportBugForClassIntentionAction(problemDescriptor)).range(textRange).registerFix()
 								.newFix(new ClearBugIntentionAction(problemDescriptor)).range(textRange).registerFix()
 								.newFix(new ClearAndSuppressBugIntentionAction(problemDescriptor)).range(textRange).registerFix()
+								.newFix(new FixWithDevoxxGenieIntentionAction(problemDescriptor)).range(textRange).registerFix()
 								.create();
 
 				break;
@@ -227,6 +232,7 @@ public final class BugAnnotator implements Annotator {
 								.newFix(new SuppressReportBugForClassIntentionAction(problemDescriptor)).range(textRange).registerFix()
 								.newFix(new ClearBugIntentionAction(problemDescriptor)).range(textRange).registerFix()
 								.newFix(new ClearAndSuppressBugIntentionAction(problemDescriptor)).range(textRange).registerFix()
+								.newFix(new FixWithDevoxxGenieIntentionAction(problemDescriptor)).range(textRange).registerFix()
 								.create();
 
 				break;

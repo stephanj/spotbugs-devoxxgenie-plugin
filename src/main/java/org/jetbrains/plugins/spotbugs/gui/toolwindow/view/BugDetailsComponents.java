@@ -26,6 +26,8 @@ import edu.umd.cs.findbugs.*;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.spotbugs.common.util.BugInstanceUtil;
+import org.jetbrains.plugins.spotbugs.devoxxgenie.DevoxxGenieBridge;
+import org.jetbrains.plugins.spotbugs.devoxxgenie.DevoxxGeniePromptBuilder;
 import org.jetbrains.plugins.spotbugs.gui.common.*;
 import org.jetbrains.plugins.spotbugs.gui.tree.view.BugTree;
 import org.jetbrains.plugins.spotbugs.resources.GuiResources;
@@ -49,6 +51,7 @@ public final class BugDetailsComponents {
 	private JEditorPane _explanationPane;
 	private JPanel _bugDetailsPanel;
 	private JPanel _explanationPanel;
+	private JButton _fixWithDevoxxGenieButton;
 	private final ToolWindowPanel _parent;
 	private double _splitPaneHorizontalWeight = 0.6;
 	private SortedBugCollection _lastBugCollection;
@@ -87,10 +90,34 @@ public final class BugDetailsComponents {
 			_bugDetailsPanel = new JPanel();
 			_bugDetailsPanel.setBorder(JBUI.Borders.empty());
 			_bugDetailsPanel.setLayout(new BorderLayout());
+			_bugDetailsPanel.add(createToolbarPanel(), BorderLayout.NORTH);
 			_bugDetailsPanel.add(scrollPane, BorderLayout.CENTER);
 		}
 
 		return _bugDetailsPanel;
+	}
+
+	private JPanel createToolbarPanel() {
+		_fixWithDevoxxGenieButton = new JButton("Fix with DevoxxGenie");
+		_fixWithDevoxxGenieButton.setBackground(new Color(0x35, 0x74, 0xF0));
+		_fixWithDevoxxGenieButton.setForeground(Color.WHITE);
+		_fixWithDevoxxGenieButton.setFocusPainted(false);
+		_fixWithDevoxxGenieButton.setBorder(BorderFactory.createCompoundBorder(
+				BorderFactory.createLineBorder(new Color(0x2B, 0x5F, 0xC3), 1, true),
+				JBUI.Borders.empty(4, 12)
+		));
+		_fixWithDevoxxGenieButton.setOpaque(true);
+		_fixWithDevoxxGenieButton.setVisible(false);
+		_fixWithDevoxxGenieButton.addActionListener(e -> {
+			if (_lastBugInstance != null && _parent != null) {
+				final String prompt = DevoxxGeniePromptBuilder.buildPrompt(_lastBugInstance, null);
+				DevoxxGenieBridge.sendPrompt(_parent.getProject(), prompt);
+			}
+		});
+
+		final JPanel toolbarPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 2));
+		toolbarPanel.add(_fixWithDevoxxGenieButton);
+		return toolbarPanel;
 	}
 
 	private JEditorPane getBugDetailsPane() {
@@ -283,6 +310,9 @@ public final class BugDetailsComponents {
 		_bugDetailsPane.setText(html.toString());
 		scrollRectToVisible(_bugDetailsPane);
 
+		if (_fixWithDevoxxGenieButton != null) {
+			_fixWithDevoxxGenieButton.setVisible(DevoxxGenieBridge.isAvailable());
+		}
 	}
 
 	void setBugExplanation(final SortedBugCollection bugCollection, final BugInstance bugInstance) {
