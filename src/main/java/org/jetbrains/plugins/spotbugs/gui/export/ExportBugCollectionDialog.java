@@ -28,7 +28,7 @@ import com.intellij.openapi.ui.LabeledComponent;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.ui.OptionGroup;
+import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.util.ui.JBDimension;
 import org.jetbrains.annotations.NonNls;
@@ -102,15 +102,19 @@ public final class ExportBugCollectionDialog extends DialogWrapper {
 		openInBrowserCheckbox = new JBCheckBox(ResourcesLoader.getString("export.options.openInBrowser"));
 		openInBrowserCheckbox.addActionListener(updateControlsAction);
 
-		final OptionGroup optionGroup = new OptionGroup(ResourcesLoader.getString("export.options.title"));
-		optionGroup.add(htmlCheckbox);
-		optionGroup.add(xmlCheckbox);
-		optionGroup.add(createSubDirectoryCheckbox);
-		optionGroup.add(openInBrowserCheckbox);
+		final JPanel optionsPanel = new JPanel(new BorderLayout());
+		optionsPanel.setBorder(IdeBorderFactory.createTitledBorder(ResourcesLoader.getString("export.options.title")));
+		final JPanel optionsContent = new JPanel();
+		optionsContent.setLayout(new javax.swing.BoxLayout(optionsContent, javax.swing.BoxLayout.Y_AXIS));
+		optionsContent.add(htmlCheckbox);
+		optionsContent.add(xmlCheckbox);
+		optionsContent.add(createSubDirectoryCheckbox);
+		optionsContent.add(openInBrowserCheckbox);
+		optionsPanel.add(optionsContent);
 
 		final JPanel pane = new JPanel(new BorderLayout());
 		pane.add(targetDirectoryLabeled, BorderLayout.NORTH);
-		pane.add(optionGroup.createPanel());
+		pane.add(optionsPanel);
 		pane.setPreferredSize(new JBDimension(400, 0));
 		return pane;
 	}

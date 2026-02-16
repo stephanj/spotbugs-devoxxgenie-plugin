@@ -32,7 +32,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.ui.PopupHandler;
 import com.intellij.util.EditSourceOnDoubleClickHandler;
 import com.intellij.util.OpenSourceUtil;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.ui.JBColor;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.Nullable;
@@ -86,10 +86,10 @@ public class BugTree extends Tree implements DataProvider, OccurenceNavigator {
 		addMouseMotionListener(new MouseMotionListenerImpl());
 		addMouseListener(new MouseListenerImpl());
 
-		if (UIUtil.isUnderDarcula()) {
+		if (!JBColor.isBright()) {
 			putClientProperty("JTree.lineStyle", "None");
 		} else {
-			UIUtil.setLineStyleAngled(this);
+			putClientProperty("JTree.lineStyle", "Angled");
 		}
 		setScrollsOnExpand(true);
 		getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);

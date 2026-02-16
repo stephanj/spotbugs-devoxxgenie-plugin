@@ -21,7 +21,6 @@ package org.jetbrains.plugins.spotbugs.resources;
 
 import com.intellij.ui.JBColor;
 import com.intellij.ui.scale.JBUIScale;
-import com.intellij.util.ui.UIUtil;
 import org.jdesktop.swingx.color.ColorUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -48,7 +47,7 @@ public class GuiResources {
 		final String yellow = ColorUtil.toHexString(JBColor.yellow);
 		final String red = ColorUtil.toHexString(JBColor.red);
 		final String cremeWhite = ColorUtil.toHexString(new JBColor(new Color(0x005555), JBColor.green));
-		final String fontColor = UIUtil.isUnderDarcula() ? "#bbbbbb" : ColorUtil.toHexString(JBColor.black);
+		final String fontColor = JBColor.isBright() ? ColorUtil.toHexString(JBColor.black) : "#bbbbbb";
 		final int fontSize = JBUIScale.scale(12);
 		final int h1FontSize = JBUIScale.scale(16);
 		final int h2FontSize = JBUIScale.scale(14);

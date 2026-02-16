@@ -197,13 +197,15 @@ final class AdvancedSettingsAction extends DefaultActionGroup {
 					return;
 				}
 				JDOMUtil.writeDocument(new Document(root), file, "\n");
-				RevealFileAction.showDialog(
+				if (Messages.showOkCancelDialog(
 						project,
 						ResourcesLoader.getString("settings.export.success.text"),
 						StringUtil.capitalizeWords(ResourcesLoader.getString("settings.export.success.title"), true),
-						file,
-						null
-				);
+						RevealFileAction.getActionName(),
+						Messages.getCancelButton(),
+						Messages.getInformationIcon()) == Messages.OK) {
+					RevealFileAction.openFile(file);
+				}
 			} catch (final IOException ex) {
 				throw ErrorUtil.toUnchecked(ex);
 			}
