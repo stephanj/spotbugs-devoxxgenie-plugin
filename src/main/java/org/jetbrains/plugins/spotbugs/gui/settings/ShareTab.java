@@ -91,9 +91,10 @@ final class ShareTab extends JPanel implements SettingsOwner<WorkspaceSettings>,
 		final FileTextField field = FileChooserFactory.getInstance().createFileTextField(descriptor, this);
 		final TextFieldWithBrowseButton importPath = new TextFieldWithBrowseButton(field.getField());
 		importPath.addBrowseFolderListener(
+				ResourcesLoader.getString("settings.choose.title"),
+				ResourcesLoader.getString("settings.choose.description"),
 				null,
-				descriptor.withTitle(ResourcesLoader.getString("settings.choose.title"))
-						.withDescription(ResourcesLoader.getString("settings.choose.description"))
+				descriptor
 		);
 		importPathLabel = new LabeledComponent<>();
 		importPathLabel.setBorder(BorderFactory.createEmptyBorder(5, 0, 0, 0));
