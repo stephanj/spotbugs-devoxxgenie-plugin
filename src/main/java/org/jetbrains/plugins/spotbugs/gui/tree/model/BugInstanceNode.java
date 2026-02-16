@@ -21,6 +21,7 @@ package org.jetbrains.plugins.spotbugs.gui.tree.model;
 
 import com.intellij.codeInspection.ProblemDescriptor;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
@@ -89,10 +90,10 @@ public class BugInstanceNode extends AbstractTreeNode<VisitableTreeNode> impleme
 	@Nullable
 	public PsiFile getPsiFile() {
 		if (_file == null) {
-			final PsiClass psiClass = IdeaUtilImpl.findJavaPsiClass(_project, getBug().getModule(), getSourcePath());
-			if (psiClass != null) {
-				_file = psiClass.getContainingFile();
-			}
+			_file = ReadAction.compute(() -> {
+				final PsiClass psiClass = IdeaUtilImpl.findJavaPsiClass(_project, getBug().getModule(), getSourcePath());
+				return psiClass != null ? psiClass.getContainingFile() : null;
+			});
 		}
 		return _file;
 	}

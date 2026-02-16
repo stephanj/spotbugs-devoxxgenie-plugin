@@ -61,7 +61,18 @@ public final class TreeOccurenceNavigator implements OccurenceNavigator {
 		final AbstractNodeDescriptor<VisitableTreeNode> nodedescriptor = (AbstractNodeDescriptor<VisitableTreeNode>) treepath.getLastPathComponent();
 
 		if (nodedescriptor instanceof BugInstanceNode) {
-			return _tree.getRowCount() != _tree.getRowForPath(treepath) + 1;
+			// Traverse the tree model instead of using getRowCount()/getRowForPath()
+			// which access TreeUI and require EDT
+			TreeNode node = (TreeNode) nodedescriptor;
+			TreeNode parent = node.getParent();
+			while (parent != null) {
+				if (parent.getIndex(node) < parent.getChildCount() - 1) {
+					return true;
+				}
+				node = parent;
+				parent = node.getParent();
+			}
+			return false;
 		} else if (nodedescriptor instanceof BugInstanceGroupNode) {
 			final TreeNode node = (BugInstanceGroupNode) nodedescriptor;
 			return node.getChildCount() > 0;

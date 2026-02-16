@@ -28,7 +28,6 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogBuilder;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.ui.PopupHandler;
 import com.intellij.util.EditSourceOnDoubleClickHandler;
@@ -149,20 +148,6 @@ public class BugTree extends Tree implements DataProvider, OccurenceNavigator {
 		if (CommonDataKeys.VIRTUAL_FILE_ARRAY.is(dataId)) {
 			final VirtualFile virtualFile = getSelectedVirtualFile();
 			return virtualFile != null ? new VirtualFile[]{virtualFile} : VirtualFile.EMPTY_ARRAY;
-		}
-		if (CommonDataKeys.PSI_ELEMENT.is(dataId)) {
-			final BugInstanceNode node = _treeHelper.getSelectedBugInstanceNode();
-			if (node == null) {
-				return null;
-			}
-			final PsiFile psiFile = node.getPsiFile();
-			if (node.isAnonymousClass() || node.isFirstLines()) {
-				final PsiElement psiElement = IdeaUtilImpl.findPsiElement(psiFile, node.getBugInstance(), _project);
-				if (psiElement != null) {
-					return psiElement;
-				}
-			}
-			return psiFile;
 		}
 		return null;
 	}
