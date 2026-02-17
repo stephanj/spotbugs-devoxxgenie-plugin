@@ -27,7 +27,7 @@ The plugin detects whether DevoxxGenie is installed at runtime. When available, 
 
 ### Requirements
 
-- [DevoxxGenie](https://plugins.jetbrains.com/plugin/24169-devoxxgenie) plugin installed and enabled in IntelliJ IDEA
+- [DevoxxGenie](https://plugins.jetbrains.com/plugin/24169-devoxxgenie) plugin installed (v0.9.12 or higher) and enabled in IntelliJ IDEA
 - SpotBugs analysis results available (run an analysis first)
 
 ---
