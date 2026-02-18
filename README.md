@@ -18,8 +18,55 @@ This fork adds integration with the [DevoxxGenie](https://github.com/devoxx/Devo
 - **Intention action** — When SpotBugs highlights a bug in the editor, use the "DevoxxGenie: Fix '...'" quick-fix from the Alt+Enter menu to send the finding to DevoxxGenie.
 - **Line marker integration** — Right-click a SpotBugs gutter icon to access the DevoxxGenie fix action alongside the existing suppress/clear options.
 - **Bug details panel button** — A "Fix with DevoxxGenie" button appears in the SpotBugs tool window when viewing bug details.
+- **Bulk task creation** — Select multiple bugs in the tree and generate structured task files for the DevoxxGenie CLI Runner in one click.
 
 <img width="2056" height="1329" alt="Screenshot 2026-02-16 at 12 37 06" src="https://github.com/user-attachments/assets/a69e08cd-7c93-402a-a283-f4afaaab93d3" />
+
+### Bulk Task Creation
+
+After running an analysis, you can create [DevoxxGenie CLI Runner](https://github.com/devoxx/DevoxxGenieIDEAPlugin) task files for multiple bugs at once:
+
+1. **Check bugs in the tree** — click the checkbox icon that appears to the left of any bug row in the SpotBugs tool window. Checked bugs are highlighted with a filled checkbox; click again to deselect.
+2. **Click "Create N DevoxxGenie Task(s)"** in the tool window toolbar (the button label updates to show the current selection count).
+3. **Task files are written** to `backlog/tasks/` in your project root, one `.md` file per bug.
+
+Each generated file follows the DevoxxGenie CLI Runner format with YAML frontmatter and a Markdown body:
+
+```markdown
+---
+id: TASK-42
+title: Fix NULL_DEREFERENCE in MyService.java at line 87
+status: To Do
+priority: high
+type: bug
+assignee: ""
+labels:
+  - spotbugs
+  - correctness
+created: 2026-02-18
+---
+# Fix `NULL_DEREFERENCE`: Null pointer dereference of ...
+
+## Description
+
+- **Rule:** `NULL_DEREFERENCE`
+- **Category:** Correctness
+- **File:** `org/example/MyService.java`
+- **Line:** 87
+- **Priority:** High
+
+## Acceptance Criteria
+
+- [ ] The `NULL_DEREFERENCE` issue is resolved
+- [ ] No new SpotBugs warnings are introduced
+- [ ] Existing tests continue to pass
+
+## References
+
+- [SpotBugs documentation for NULL_DEREFERENCE](https://spotbugs.readthedocs.io/)
+```
+
+Task numbers are assigned without collisions — the plugin scans `backlog/tasks/`, `backlog/completed/`, and `backlog/archive/tasks/` for existing `id: TASK-N` entries and picks the next available number. After creation, the selection is cleared and a notification confirms how many files were written.
 
 ### How It Works
 

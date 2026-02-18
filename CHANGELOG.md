@@ -2,6 +2,15 @@
 
 All notable changes to the SpotBugs with DevoxxGenie plugin are documented in this file.
 
+## [1.3.1] - 2026-02-18
+
+### Added
+- **Checkbox multi-select in the bug tree** — click the checkbox icon on any bug row to mark it for bulk processing
+- **"Create DevoxxGenie Task(s)" toolbar action** — generates one structured `backlog/tasks/*.md` file per checked bug, compatible with the DevoxxGenie CLI Runner
+  - Task files include YAML frontmatter (`id`, `title`, `status`, `priority`, `labels`, `created`) and a Markdown body with rule, category, file, line, and acceptance criteria
+  - Task numbering is collision-free: scans `backlog/tasks/`, `backlog/completed/`, and `backlog/archive/tasks/` for existing IDs before assigning the next number
+  - Clears the selection and shows a balloon notification after creation
+
 ## [1.3.0] - 2026-02-16
 
 ### Added
