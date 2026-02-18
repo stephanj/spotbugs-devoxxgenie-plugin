@@ -18,9 +18,12 @@ This fork adds integration with the [DevoxxGenie](https://github.com/devoxx/Devo
 - **Intention action** — When SpotBugs highlights a bug in the editor, use the "DevoxxGenie: Fix '...'" quick-fix from the Alt+Enter menu to send the finding to DevoxxGenie.
 - **Line marker integration** — Right-click a SpotBugs gutter icon to access the DevoxxGenie fix action alongside the existing suppress/clear options.
 - **Bug details panel button** — A "Fix with DevoxxGenie" button appears in the SpotBugs tool window when viewing bug details.
-- **Bulk task creation** — Select multiple bugs in the tree and generate structured task files for the DevoxxGenie CLI Runner in one click.
 
 <img width="2056" height="1329" alt="Screenshot 2026-02-16 at 12 37 06" src="https://github.com/user-attachments/assets/a69e08cd-7c93-402a-a283-f4afaaab93d3" />
+
+- **Bulk task creation** — Select multiple bugs in the tree and generate structured task files for the DevoxxGenie CLI Runner in one click.
+
+<img width="750" height="230" alt="MultiSelectIssues" src="https://github.com/user-attachments/assets/75adc622-0625-4b4b-bbff-054914262964" />
 
 ### Bulk Task Creation
 
