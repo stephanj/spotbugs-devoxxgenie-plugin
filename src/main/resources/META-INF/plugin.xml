@@ -79,6 +79,11 @@
     </description>
     <change-notes>
         <![CDATA[<html>
+        <h3>1.3.1</h3>
+        <ul>
+            <li>Checkbox multi-select in the bug tree for bulk task creation.</li>
+            <li>New "Create DevoxxGenie Task(s)" toolbar action: generates structured backlog/tasks/*.md files compatible with the DevoxxGenie CLI Runner.</li>
+        </ul>
         <h3>1.3.0</h3>
         <ul>
             <li>Slightly rewritten notifications.</li>
@@ -197,6 +202,7 @@
                             displayName="SpotBugs with DevoxxGenie"/>
         <checkinHandlerFactory implementation="org.jetbrains.plugins.spotbugs.core.CheckinHandlerFactoryImpl"/>
         <projectService serviceImplementation="org.jetbrains.plugins.spotbugs.core.ProblemCacheService"/>
+        <projectService serviceImplementation="org.jetbrains.plugins.spotbugs.devoxxgenie.BugSelectionManager"/>
     </extensions>
     <extensions defaultExtensionNs="com.intellij">
         <annotator language="JAVA" implementationClass="org.jetbrains.plugins.spotbugs.gui.editor.BugAnnotator"/>
@@ -497,6 +503,12 @@
         </group>
 
         <group id="SpotBugs.ToolBarActions.utils" text="SpotBugs Export/Import Actions" popup="true">
+
+            <action id="SpotBugs.CreateDevoxxGenieTasks"
+                    class="org.jetbrains.plugins.spotbugs.actions.CreateDevoxxGenieTasksAction"
+                    text="Create DevoxxGenie Task(s)"
+                    description="Create DevoxxGenie CLI Runner task files for all checked bugs."
+                    icon="AllIcons.Actions.AddFile"/>
 
             <action id="SpotBugs.ExportBugCollection"
                     class="org.jetbrains.plugins.spotbugs.actions.ExportBugCollection"

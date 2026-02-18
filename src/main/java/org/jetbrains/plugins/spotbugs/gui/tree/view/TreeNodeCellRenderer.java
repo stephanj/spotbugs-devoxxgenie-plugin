@@ -19,10 +19,14 @@
  */
 package org.jetbrains.plugins.spotbugs.gui.tree.view;
 
+import com.intellij.icons.AllIcons;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.RowIcon;
 import info.clearthought.layout.TableLayout;
 import info.clearthought.layout.TableLayoutConstants;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.spotbugs.common.util.GuiUtil;
+import org.jetbrains.plugins.spotbugs.devoxxgenie.BugSelectionManager;
 import org.jetbrains.plugins.spotbugs.gui.tree.model.BugInstanceGroupNode;
 import org.jetbrains.plugins.spotbugs.gui.tree.model.BugInstanceNode;
 import org.jetbrains.plugins.spotbugs.gui.tree.model.RootNode;
@@ -59,6 +63,9 @@ import java.awt.Stroke;
 public class TreeNodeCellRenderer extends JPanel implements TreeCellRenderer/*, TreeCellEditor*/ {
 
 	private static final Stroke _stroke = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1, new float[] {1, 1}, 0);
+
+	@Nullable
+	private BugSelectionManager _selectionManager;
 
 	private boolean _selected;
 	private boolean _hasFocus;
@@ -121,6 +128,11 @@ public class TreeNodeCellRenderer extends JPanel implements TreeCellRenderer/*, 
 		add(_hits, BorderLayout.LINE_END);*/
 		//add(_link, BorderLayout.LINE_END);
 
+	}
+
+
+	public void setSelectionManager(@Nullable BugSelectionManager selectionManager) {
+		_selectionManager = selectionManager;
 	}
 
 
@@ -234,6 +246,18 @@ public class TreeNodeCellRenderer extends JPanel implements TreeCellRenderer/*, 
 					final Icon collapsedIcon = bugInstanceNode.getCollapsedIcon();
 					((MaskIcon) collapsedIcon).setColorPainted(selected);
 					setIcon(collapsedIcon);
+				}
+
+				if (_selectionManager != null) {
+					final boolean checked = _selectionManager.isSelected(bugInstanceNode.getBugInstance());
+					final Icon checkboxIcon = checked
+							? AllIcons.Diff.GutterCheckBoxSelected
+							: AllIcons.Diff.GutterCheckBox;
+					final Icon existing = _icon.getIcon();
+					final RowIcon rowIcon = new RowIcon(2);
+					rowIcon.setIcon(checkboxIcon, 0);
+					rowIcon.setIcon(existing, 1);
+					_icon.setIcon(rowIcon);
 				}
 
 				setToolTipText(bugInstanceNode.getTooltip());

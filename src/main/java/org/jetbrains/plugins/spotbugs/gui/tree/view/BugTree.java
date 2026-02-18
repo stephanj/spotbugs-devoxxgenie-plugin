@@ -48,6 +48,8 @@ import org.jetbrains.plugins.spotbugs.gui.tree.model.AbstractNodeDescriptor;
 import org.jetbrains.plugins.spotbugs.gui.tree.model.BugInstanceNode;
 import org.jetbrains.plugins.spotbugs.gui.tree.model.VisitableTreeNode;
 
+import org.jetbrains.plugins.spotbugs.devoxxgenie.BugSelectionManager;
+
 import javax.swing.SwingUtilities;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
@@ -56,6 +58,7 @@ import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import java.awt.Component;
 import java.awt.Cursor;
+import java.awt.Rectangle;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -70,6 +73,7 @@ public class BugTree extends Tree implements DataProvider, OccurenceNavigator {
 	private BugTreeHelper _treeHelper;
 	private ScrollToSourceHandler _scrollToSourceHandler;
 	private final TreeOccurenceNavigator _occurenceNavigator;
+	private BugSelectionManager _selectionManager;
 
 	public BugTree(final TreeModel treeModel, final BugTreePanel bugTreePanel, final Project project) {
 		super(treeModel);
@@ -95,7 +99,12 @@ public class BugTree extends Tree implements DataProvider, OccurenceNavigator {
 		getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
 		setRootVisible(true);
 		setShowsRootHandles(true);
-		setCellRenderer(new TreeNodeCellRenderer());
+
+		_selectionManager = _project.getService(BugSelectionManager.class);
+		final TreeNodeCellRenderer renderer = new TreeNodeCellRenderer();
+		renderer.setSelectionManager(_selectionManager);
+		setCellRenderer(renderer);
+		addMouseListener(new CheckboxMouseListenerImpl());
 
 		installHandlers();
 	}
@@ -228,6 +237,37 @@ public class BugTree extends Tree implements DataProvider, OccurenceNavigator {
 	@Override
 	public String getPreviousOccurenceActionName() {
 		return _occurenceNavigator.getPreviousOccurenceActionName();
+	}
+
+	private class CheckboxMouseListenerImpl extends MouseAdapter {
+		@Override
+		public void mouseClicked(final MouseEvent e) {
+			if (!SwingUtilities.isLeftMouseButton(e) || e.getClickCount() != 1) {
+				return;
+			}
+			if (_selectionManager == null) {
+				return;
+			}
+			final TreePath path = getPathForLocation(e.getX(), e.getY());
+			if (path == null) {
+				return;
+			}
+			final Object node = path.getLastPathComponent();
+			if (!(node instanceof BugInstanceNode)) {
+				return;
+			}
+			final BugInstanceNode bugNode = (BugInstanceNode) node;
+			final Rectangle bounds = getPathBounds(path);
+			if (bounds == null) {
+				return;
+			}
+			final int clickOffset = e.getX() - bounds.x;
+			if (clickOffset >= 0 && clickOffset <= 20) {
+				_selectionManager.toggle(bugNode.getBugInstance());
+				repaint();
+				e.consume();
+			}
+		}
 	}
 
 	private class MouseMotionListenerImpl extends MouseMotionAdapter {
