@@ -2,6 +2,11 @@
 
 All notable changes to the SpotBugs with DevoxxGenie plugin are documented in this file.
 
+## [1.3.3] - 2026-06-15
+
+### Fixed
+- **`Read access is allowed from inside read-action only` crash when choosing a suppress-warning intention on IntelliJ 2024.1+** — `GroupBugIntentionListPopupStep.onChosen` runs a `WriteCommandAction` on the EDT, but modern platforms no longer hold an implicit write-intent read lock on EDT events. The write command is now run under a write-intent read action via the new shared `ThreadingUtilFb.runWriteIntentReadAction` helper (extracted from `BugTreePanel`).
+
 ## [1.3.2] - 2026-06-15
 
 ### Fixed
