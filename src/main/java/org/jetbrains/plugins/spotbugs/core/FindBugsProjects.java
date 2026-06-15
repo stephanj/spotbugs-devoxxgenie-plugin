@@ -137,7 +137,7 @@ public final class FindBugsProjects {
 
 			final VirtualFile[] sourceRoots = getSourceRoots(module, includeTests);
 			for (final VirtualFile sourceRoot : sourceRoots) {
-				if (!ret.addSourceDir(sourceRoot.getCanonicalPath())) {
+				if (!ret.addSourceDirs(java.util.Collections.singletonList(sourceRoot.getCanonicalPath()))) {
 					LOGGER.debug(String.format("Source directory '%s' of module '%s' already added", sourceRoot, module.getName()));
 				}
 			}

@@ -85,7 +85,7 @@ dependencies {
         testFramework TestFrameworkType.Platform.INSTANCE
         testFramework TestFrameworkType.Plugin.Java.INSTANCE
     }
-    implementation ('com.github.spotbugs:spotbugs:4.9.0') {
+    implementation ('com.github.spotbugs:spotbugs:4.10.2') {
         exclude group: 'xml-apis', module: 'xml-apis'
         exclude group: 'org.apache.logging.log4j', module: 'log4j-api'
         exclude group: 'org.apache.logging.log4j', module: 'log4j-core'

@@ -20,12 +20,16 @@
 package org.jetbrains.plugins.spotbugs.gui.toolwindow.view;
 
 import com.intellij.debugger.impl.DebuggerUtilsEx;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.editor.EditorSettings;
 import com.intellij.openapi.editor.LogicalPosition;
-import com.intellij.openapi.editor.RangeMarker;
+import com.intellij.openapi.fileTypes.FileType;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.editor.ScrollType;
 import com.intellij.openapi.editor.colors.EditorColorsScheme;
 import com.intellij.openapi.editor.markup.EffectType;
@@ -66,6 +70,8 @@ import javax.swing.tree.TreePath;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -74,6 +80,10 @@ import java.util.Map;
 @SuppressFBWarnings("SE_BAD_FIELD")
 @SuppressWarnings({"AnonymousInnerClass"})
 public class BugTreePanel extends JPanel {
+
+	/** {@code Application.runWriteIntentReadAction(ThrowableComputable)} on platforms that have it (2024.1+), else null. Resolved once. */
+	@Nullable
+	private static final Method WRITE_INTENT_READ_ACTION_METHOD = resolveWriteIntentReadActionMethod();
 
 	@NotNull
 	private final Project _project;
@@ -166,30 +176,136 @@ public class BugTreePanel extends JPanel {
 	}
 
 	public void setPreview(@Nullable final TreePath treePath) {
-		boolean clear = true;
-		if (treePath != null && treePath.getLastPathComponent() instanceof BugInstanceNode) {
-			final BugInstanceNode bugInstanceNode = (BugInstanceNode) getTreeNodeFromPath(treePath);
-			if (bugInstanceNode != null) {
-				final PsiFile psiFile = bugInstanceNode.getPsiFile();
-				if (psiFile != null) {
-					final Document document = PsiDocumentManager.getInstance(_project).getDocument(psiFile);
-					if (document != null) {
-						final Editor editor = createEditor(bugInstanceNode, psiFile, document);
-						_parent.setPreviewEditor(editor, psiFile);
-						scrollToPreviewSource(bugInstanceNode, editor);
-						clear = false;
-					}
-				}
+		// This runs on the EDT from a tree-selection event. It both reads the PSI/document
+		// model (needs read access) and creates an Editor (EditorFactory.createEditor needs
+		// a write-intent read action for setHighlighter and its editorCreated listeners).
+		// Only a write-intent read action grants both. Older platforms (<= 2023.x) held this
+		// lock implicitly on EDT events; newer ones require it to be requested explicitly.
+		runWriteIntentReadAction(() -> {
+			final PreviewModel model = computePreviewModel(treePath);
+			if (model != null) {
+				final Editor editor = createEditor(model);
+				_parent.setPreviewEditor(editor, model.psiFile);
+				scrollToPreviewSource(model.bugInstanceNode, editor);
+			} else {
+				_parent.setPreviewEditor(null, null);
 			}
+		});
+	}
+
+	/**
+	 * Runs {@code task} inside a write-intent read action (read access + permission to mutate the
+	 * editor/markup model). {@code Application.runWriteIntentReadAction} only exists on the IntelliJ
+	 * platform 2024.1+; it is invoked reflectively so the plugin still compiles against, and runs on,
+	 * the declared minimum platform (2023.3), where EDT events already hold this lock implicitly.
+	 * <p>
+	 * If the caller is already inside a read action (e.g. an action toolbar update that runs under
+	 * {@code runReadAction}), a write-intent read action cannot be acquired — a read lock cannot be
+	 * upgraded. In that case the work is deferred to a later EDT cycle where no read lock is held.
+	 */
+	private static void runWriteIntentReadAction(@NotNull final Runnable task) {
+		final Application application = ApplicationManager.getApplication();
+		final Method method = WRITE_INTENT_READ_ACTION_METHOD;
+		if (method == null) {
+			// Older platform: the EDT already runs under an implicit write-intent read action.
+			task.run();
+			return;
 		}
-		if (clear) {
-			_parent.setPreviewEditor(null, null);
+		if (application.isReadAccessAllowed()) {
+			// Inside a read action: defer so the write-intent action is taken outside the read lock.
+			application.invokeLater(() -> invokeWriteIntentReadAction(method, application, task));
+			return;
+		}
+		invokeWriteIntentReadAction(method, application, task);
+	}
+
+	private static void invokeWriteIntentReadAction(@NotNull final Method method, @NotNull final Application application, @NotNull final Runnable task) {
+		final ThrowableComputable<Object, RuntimeException> computable = () -> {
+			task.run();
+			return null;
+		};
+		try {
+			method.invoke(application, computable);
+		} catch (final InvocationTargetException e) {
+			final Throwable cause = e.getCause();
+			if (cause instanceof RuntimeException) {
+				throw (RuntimeException) cause;
+			}
+			if (cause instanceof Error) {
+				throw (Error) cause;
+			}
+			throw new RuntimeException(cause);
+		} catch (final IllegalAccessException e) {
+			throw new RuntimeException(e);
 		}
 	}
 
+	@Nullable
+	private static Method resolveWriteIntentReadActionMethod() {
+		try {
+			return ApplicationManager.getApplication().getClass().getMethod("runWriteIntentReadAction", ThrowableComputable.class);
+		} catch (final NoSuchMethodException e) {
+			return null;
+		}
+	}
+
+	/**
+	 * Resolves everything that needs read access (document, PSI element, highlight range)
+	 * so the editor can be built afterwards without holding a read lock.
+	 * Must be called inside a read action.
+	 */
+	@Nullable
+	private PreviewModel computePreviewModel(@Nullable final TreePath treePath) {
+		if (treePath == null || !(treePath.getLastPathComponent() instanceof BugInstanceNode)) {
+			return null;
+		}
+		final BugInstanceNode bugInstanceNode = (BugInstanceNode) getTreeNodeFromPath(treePath);
+		if (bugInstanceNode == null) {
+			return null;
+		}
+		final PsiFile psiFile = bugInstanceNode.getPsiFile();
+		if (psiFile == null) {
+			return null;
+		}
+		final Document document = PsiDocumentManager.getInstance(_project).getDocument(psiFile);
+		if (document == null) {
+			return null;
+		}
+
+		final int lineStart = bugInstanceNode.getSourceLines()[0] - 1;
+		final int lineEnd = bugInstanceNode.getSourceLines()[1];
+		PsiElement element = null;
+
+		if (lineStart < 0 && lineEnd < 0 || lineStart == 0 && lineEnd == 1)  {   // find anonymous classes
+			element = IdeaUtilImpl.findPsiElement(bugInstanceNode.getPsiFile(), bugInstanceNode.getBugInstance(), _project);
+		} else {
+			element = IdeaUtilImpl.getElementAtLine(psiFile, lineStart);
+		}
+
+		int highlightStart = -1;
+		int highlightEnd = -1;
+		if (element != null) {
+			final MethodAnnotation primaryMethod = BugInstanceUtil.getPrimaryMethod(bugInstanceNode.getBugInstance());
+			if (primaryMethod != null && DebuggerUtilsEx.isLambdaName(primaryMethod.getMethodName())) {
+				element = IdeaUtilImpl.findOnlyLambdaExpressionOrPsiElement(element);
+			}
+			final TextRange range = element.getTextRange();
+			highlightStart = range.getStartOffset();
+			highlightEnd = range.getEndOffset();
+		} else if (lineStart >= 0 && lineEnd >= 0) {
+			final int lineCount = document.getLineCount();
+			if (lineStart < lineCount && lineEnd < lineCount) {
+				highlightStart = document.getLineStartOffset(lineStart);
+				highlightEnd = document.getLineEndOffset(lineEnd);
+			} // else document was changed
+		}
+
+		return new PreviewModel(bugInstanceNode, psiFile, document, psiFile.getFileType(), highlightStart, highlightEnd);
+	}
+
 	@NotNull
-	private Editor createEditor(@NotNull final BugInstanceNode bugInstanceNode, @NotNull final PsiFile psiFile, @NotNull final Document document) {
-		final Editor editor = EditorFactory.getInstance().createEditor(document, _project, psiFile.getFileType(), false);
+	private Editor createEditor(@NotNull final PreviewModel model) {
+		final Editor editor = EditorFactory.getInstance().createEditor(model.document, _project, model.fileType, false);
 		final EditorColorsScheme scheme = editor.getColorsScheme();
 		scheme.setEditorFontSize(scheme.getEditorFontSize() - 1);
 
@@ -201,38 +317,31 @@ public class BugTreePanel extends JPanel {
 		editorSettings.setWheelFontChangeEnabled(true);
 		editorSettings.setVariableInplaceRenameEnabled(true);
 
-		final int lineStart = bugInstanceNode.getSourceLines()[0] - 1;
-		final int lineEnd = bugInstanceNode.getSourceLines()[1];
-		PsiElement element = null;
-
-		if (lineStart < 0 && lineEnd < 0 || lineStart == 0 && lineEnd == 1)  {   // find anonymous classes
-			final PsiElement psiElement = IdeaUtilImpl.findPsiElement(bugInstanceNode.getPsiFile(), bugInstanceNode.getBugInstance(), _project);
-			if (psiElement != null) {
-				element = psiElement;
-			}
-		} else {
-			element = IdeaUtilImpl.getElementAtLine(psiFile, lineStart);
-		}
-
-		RangeMarker marker = null;
-		if (element != null) {
-			final MethodAnnotation primaryMethod = BugInstanceUtil.getPrimaryMethod(bugInstanceNode.getBugInstance());
-			if (primaryMethod != null && DebuggerUtilsEx.isLambdaName(primaryMethod.getMethodName())) {
-				element = IdeaUtilImpl.findOnlyLambdaExpressionOrPsiElement(element);
-			}
-			marker = document.createRangeMarker(element.getTextRange());
-		} else if (lineStart >= 0 && lineEnd >= 0) {
-			final int lineCount = document.getLineCount();
-			if (lineStart < lineCount && lineEnd < lineCount) {
-				marker = document.createRangeMarker(document.getLineStartOffset(lineStart), document.getLineEndOffset(lineEnd));
-			} // else document was changed
-		}
-
-		if (marker != null) {
-			editor.getMarkupModel().addRangeHighlighter(marker.getStartOffset(), marker.getEndOffset(), HighlighterLayer.FIRST - 1, new TextAttributes(null, null, JBColor.RED, EffectType.BOXED, Font.BOLD), HighlighterTargetArea.EXACT_RANGE);
+		if (model.highlightStart >= 0) {
+			editor.getMarkupModel().addRangeHighlighter(model.highlightStart, model.highlightEnd, HighlighterLayer.FIRST - 1, new TextAttributes(null, null, JBColor.RED, EffectType.BOXED, Font.BOLD), HighlighterTargetArea.EXACT_RANGE);
 		}
 
 		return editor;
+	}
+
+	/** Immutable snapshot of the model data needed to build a preview editor, resolved under a read lock. */
+	private static final class PreviewModel {
+		private final BugInstanceNode bugInstanceNode;
+		private final PsiFile psiFile;
+		private final Document document;
+		private final FileType fileType;
+		private final int highlightStart;
+		private final int highlightEnd;
+
+		PreviewModel(final BugInstanceNode bugInstanceNode, final PsiFile psiFile, final Document document,
+				final FileType fileType, final int highlightStart, final int highlightEnd) {
+			this.bugInstanceNode = bugInstanceNode;
+			this.psiFile = psiFile;
+			this.document = document;
+			this.fileType = fileType;
+			this.highlightStart = highlightStart;
+			this.highlightEnd = highlightEnd;
+		}
 	}
 
 	private static TreeNode getTreeNodeFromPath(final TreePath treePath) {
