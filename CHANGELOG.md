@@ -2,6 +2,12 @@
 
 All notable changes to the SpotBugs with DevoxxGenie plugin are documented in this file.
 
+## [1.3.2] - 2026-06-15
+
+### Fixed
+- **`Unsupported class file major version 69` when analyzing Java 25 code** — SpotBugs bundled ASM 9.7.1, which only reads up to Java 24 bytecode (major version 68). Bumped `com.github.spotbugs:spotbugs` from 4.9.0 to 4.10.2, which bundles ASM 9.10.1 (reads Java 25). Adapted to the SpotBugs API change `Project.addSourceDir(String)` → `addSourceDirs(Collection<String>)`.
+- **Read-access / `WriteIntentReadAction` crashes in the bug preview on IntelliJ 2024.1+** — modern IDEs no longer hold an implicit write-intent read lock on EDT events. `BugTreePanel.setPreview` now wraps its PSI/document read and editor creation in a write-intent read action (acquired reflectively to keep compatibility with the 2023.3 minimum platform), deferring via `invokeLater` when already inside a read action (e.g. a toggle action update).
+
 ## [1.3.1] - 2026-02-18
 
 ### Added
