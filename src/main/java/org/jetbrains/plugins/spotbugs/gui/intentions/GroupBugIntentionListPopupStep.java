@@ -29,6 +29,7 @@ import com.intellij.openapi.util.Iconable;
 import com.intellij.openapi.vfs.ReadonlyStatusHandler;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.plugins.spotbugs.common.util.ThreadingUtilFb;
 import org.jetbrains.plugins.spotbugs.intentions.SuppressReportBugIntentionAction;
 
 import javax.swing.Icon;
@@ -58,10 +59,14 @@ public class GroupBugIntentionListPopupStep extends BaseListPopupStep<SuppressRe
 	public PopupStep<?> onChosen(final SuppressReportBugIntentionAction selectedValue, final boolean finalChoice) {
 		final Project project = _psiElement.getProject();
 
-		WriteCommandAction.runWriteCommandAction(project, "Add findbugs-idea Suppress warning", null, () -> {
-			final Editor editor = FileEditorManager.getInstance(project).getSelectedTextEditor();
-			selectedValue.invoke(project, editor, _psiElement);
-		}, _psiElement.getContainingFile());
+		// The popup runs on the EDT, which on modern platforms (2024.1+) no longer holds an implicit
+		// write-intent read lock; WriteCommandAction needs one to acquire the write lock.
+		ThreadingUtilFb.runWriteIntentReadAction(() ->
+				WriteCommandAction.runWriteCommandAction(project, "Add findbugs-idea Suppress warning", null, () -> {
+					final Editor editor = FileEditorManager.getInstance(project).getSelectedTextEditor();
+					selectedValue.invoke(project, editor, _psiElement);
+				}, _psiElement.getContainingFile())
+		);
 
 		return super.onChosen(selectedValue, finalChoice);
 	}

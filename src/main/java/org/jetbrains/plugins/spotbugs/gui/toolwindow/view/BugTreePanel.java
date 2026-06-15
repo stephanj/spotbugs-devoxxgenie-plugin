@@ -20,9 +20,6 @@
 package org.jetbrains.plugins.spotbugs.gui.toolwindow.view;
 
 import com.intellij.debugger.impl.DebuggerUtilsEx;
-import com.intellij.openapi.application.Application;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorFactory;
@@ -53,6 +50,7 @@ import org.jetbrains.plugins.spotbugs.common.EventDispatchThreadHelper;
 import org.jetbrains.plugins.spotbugs.common.ExtendedProblemDescriptor;
 import org.jetbrains.plugins.spotbugs.common.util.BugInstanceUtil;
 import org.jetbrains.plugins.spotbugs.common.util.IdeaUtilImpl;
+import org.jetbrains.plugins.spotbugs.common.util.ThreadingUtilFb;
 import org.jetbrains.plugins.spotbugs.core.Bug;
 import org.jetbrains.plugins.spotbugs.core.FindBugsProject;
 import org.jetbrains.plugins.spotbugs.core.FindBugsResult;
@@ -70,8 +68,6 @@ import javax.swing.tree.TreePath;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -80,10 +76,6 @@ import java.util.Map;
 @SuppressFBWarnings("SE_BAD_FIELD")
 @SuppressWarnings({"AnonymousInnerClass"})
 public class BugTreePanel extends JPanel {
-
-	/** {@code Application.runWriteIntentReadAction(ThrowableComputable)} on platforms that have it (2024.1+), else null. Resolved once. */
-	@Nullable
-	private static final Method WRITE_INTENT_READ_ACTION_METHOD = resolveWriteIntentReadActionMethod();
 
 	@NotNull
 	private final Project _project;
@@ -181,7 +173,7 @@ public class BugTreePanel extends JPanel {
 		// a write-intent read action for setHighlighter and its editorCreated listeners).
 		// Only a write-intent read action grants both. Older platforms (<= 2023.x) held this
 		// lock implicitly on EDT events; newer ones require it to be requested explicitly.
-		runWriteIntentReadAction(() -> {
+		ThreadingUtilFb.runWriteIntentReadAction(() -> {
 			final PreviewModel model = computePreviewModel(treePath);
 			if (model != null) {
 				final Editor editor = createEditor(model);
@@ -191,62 +183,6 @@ public class BugTreePanel extends JPanel {
 				_parent.setPreviewEditor(null, null);
 			}
 		});
-	}
-
-	/**
-	 * Runs {@code task} inside a write-intent read action (read access + permission to mutate the
-	 * editor/markup model). {@code Application.runWriteIntentReadAction} only exists on the IntelliJ
-	 * platform 2024.1+; it is invoked reflectively so the plugin still compiles against, and runs on,
-	 * the declared minimum platform (2023.3), where EDT events already hold this lock implicitly.
-	 * <p>
-	 * If the caller is already inside a read action (e.g. an action toolbar update that runs under
-	 * {@code runReadAction}), a write-intent read action cannot be acquired — a read lock cannot be
-	 * upgraded. In that case the work is deferred to a later EDT cycle where no read lock is held.
-	 */
-	private static void runWriteIntentReadAction(@NotNull final Runnable task) {
-		final Application application = ApplicationManager.getApplication();
-		final Method method = WRITE_INTENT_READ_ACTION_METHOD;
-		if (method == null) {
-			// Older platform: the EDT already runs under an implicit write-intent read action.
-			task.run();
-			return;
-		}
-		if (application.isReadAccessAllowed()) {
-			// Inside a read action: defer so the write-intent action is taken outside the read lock.
-			application.invokeLater(() -> invokeWriteIntentReadAction(method, application, task));
-			return;
-		}
-		invokeWriteIntentReadAction(method, application, task);
-	}
-
-	private static void invokeWriteIntentReadAction(@NotNull final Method method, @NotNull final Application application, @NotNull final Runnable task) {
-		final ThrowableComputable<Object, RuntimeException> computable = () -> {
-			task.run();
-			return null;
-		};
-		try {
-			method.invoke(application, computable);
-		} catch (final InvocationTargetException e) {
-			final Throwable cause = e.getCause();
-			if (cause instanceof RuntimeException) {
-				throw (RuntimeException) cause;
-			}
-			if (cause instanceof Error) {
-				throw (Error) cause;
-			}
-			throw new RuntimeException(cause);
-		} catch (final IllegalAccessException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	@Nullable
-	private static Method resolveWriteIntentReadActionMethod() {
-		try {
-			return ApplicationManager.getApplication().getClass().getMethod("runWriteIntentReadAction", ThrowableComputable.class);
-		} catch (final NoSuchMethodException e) {
-			return null;
-		}
 	}
 
 	/**
